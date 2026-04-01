@@ -505,7 +505,7 @@ function drawCert(name, role){
   const sig=(cx,sname,t1,t2,img)=>{
     /* signature image above the line */
     if(img){
-      const sh=160, sw=img.width*(sh/img.height);
+      const sh=80, sw=img.width*(sh/img.height);
       ctx.drawImage(img, cx-sw/2, sigY-sh-20, sw, sh);
     }
     ctx.strokeStyle=INK;ctx.lineWidth=4;
