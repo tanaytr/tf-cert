@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechFest 2026 — Certificate Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;600;700&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700&family=Cormorant+Garamond:ital,wght@0,500;1,400;1,600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --red:#c8181a;--red-dark:#7a0000;--black:#0f0f0f;--ink:#1a1a1a;
+  --bg:#0a0606;--panel:rgba(20,8,8,0.94);--border:rgba(200,24,26,0.22);
+  --muted:#5a4040;--text:#e8dede;--grey:#888;
+}
+
+html,body{min-height:100vh;background:var(--bg);font-family:'Rajdhani',sans-serif;color:var(--text);overflow-x:hidden}
+
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(200,24,26,0.032) 59px,rgba(200,24,26,0.032) 60px),
+    repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(200,24,26,0.032) 59px,rgba(200,24,26,0.032) 60px);
+}
+
+.scan-bar{
+  position:fixed;top:0;left:0;right:0;height:3px;z-index:200;
+  background:linear-gradient(90deg,transparent,var(--red) 50%,transparent);
+  animation:scan 4s infinite linear;
+}
+@keyframes scan{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+
+/* ── pages ── */
+section{
+  position:relative;z-index:10;width:100%;min-height:100vh;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  padding:80px 24px 60px;
+  animation:fadeUp .5s ease both;
+}
+section.active{display:flex}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── home ── */
+.home-title{
+  font-family:'Oswald',sans-serif;
+  font-size:clamp(3.2rem,9vw,7rem);font-weight:700;
+  letter-spacing:clamp(8px,2vw,20px);color:#fff;
+  text-align:center;line-height:1;text-transform:uppercase;
+}
+.home-rule{width:58%;max-width:400px;height:3px;margin:18px auto 0;background:linear-gradient(90deg,transparent,var(--red) 20%,var(--red) 80%,transparent)}
+.home-year{font-family:'Orbitron',sans-serif;font-size:clamp(.9rem,2.5vw,1.55rem);letter-spacing:14px;color:var(--red);text-align:center;margin-top:10px}
+.home-sub{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:3px;color:var(--muted);text-transform:uppercase;text-align:center;margin-top:30px}
+.home-btn-wrap{margin-top:46px;text-align:center}
+
+/* ── btn ── */
+.btn{
+  display:inline-block;padding:14px 46px;
+  font-family:'Oswald',sans-serif;font-size:.93rem;
+  letter-spacing:5px;text-transform:uppercase;
+  border:2px solid var(--red);color:#fff;
+  background:transparent;cursor:pointer;
+  transition:background .2s,box-shadow .2s,transform .15s;
+  position:relative;overflow:hidden;
+}
+.btn::before{content:'';position:absolute;inset:0;background:var(--red);opacity:0;transition:opacity .22s}
+.btn:hover::before{opacity:1}
+.btn:hover{box-shadow:0 0 30px rgba(200,24,26,.5)}
+.btn:active{transform:scale(.97)}
+.btn span{position:relative;z-index:1}
+.btn.ghost{border-color:var(--muted);color:var(--muted)}
+.btn.ghost::before{background:rgba(90,64,64,.6)}
+
+/* ── back nav ── */
+.nav-back{
+  position:absolute;top:20px;left:20px;
+  font-family:'JetBrains Mono',monospace;font-size:.72rem;
+  letter-spacing:3px;color:var(--muted);
+  background:none;border:1px solid var(--border);padding:7px 16px;
+  cursor:pointer;text-transform:uppercase;transition:all .2s;z-index:20;
+}
+.nav-back:hover{border-color:var(--red);color:var(--text)}
+
+/* ── portal ── */
+.portal-wrap{
+  width:100%;max-width:480px;
+  background:var(--panel);border:1px solid var(--border);
+  padding:44px 40px 40px;position:relative;
+}
+.portal-wrap::before,.portal-wrap::after{
+  content:'';position:absolute;width:16px;height:16px;
+  border-color:var(--red);border-style:solid;opacity:.45;
+}
+.portal-wrap::before{top:-1px;left:-1px;border-width:2px 0 0 2px}
+.portal-wrap::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
+
+.portal-title{font-family:'Oswald',sans-serif;font-size:1.85rem;letter-spacing:6px;text-transform:uppercase;color:#fff;margin-bottom:5px;text-align:center}
+.portal-sub{font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:3px;color:var(--muted);text-align:center;margin-bottom:32px;text-transform:uppercase}
+
+.field-wrap{margin-bottom:20px}
+.field-label{display:block;font-family:'JetBrains Mono',monospace;font-size:.63rem;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:7px}
+.field-input{
+  width:100%;background:rgba(255,255,255,.04);
+  border:1px solid var(--border);padding:13px 16px;
+  color:#fff;font-family:'Rajdhani',sans-serif;
+  font-size:1.05rem;font-weight:600;letter-spacing:1px;
+  outline:none;transition:border-color .2s,background .2s;
+}
+.field-input:focus{border-color:var(--red);background:rgba(200,24,26,.07)}
+.field-input::placeholder{color:#3a2222;font-weight:400}
+
+.role-badge{
+  display:inline-flex;align-items:center;gap:9px;
+  padding:10px 18px;border:1px solid var(--border);
+  font-family:'Orbitron',sans-serif;font-size:.7rem;
+  letter-spacing:3px;text-transform:uppercase;
+  color:var(--muted);transition:all .3s;min-height:42px;
+}
+.role-badge.found{border-color:var(--red);color:#fff}
+.role-badge.found .rdot{background:var(--red);animation:pulse 1.5s infinite}
+.rdot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+.status{font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:2px;padding:10px 14px;margin-bottom:22px;display:none;text-transform:uppercase}
+.status.err {background:rgba(200,24,26,.1);border:1px solid rgba(200,24,26,.4);color:#ff7777;display:block}
+.status.ok  {background:rgba(0,220,100,.05);border:1px solid rgba(0,180,80,.3);color:#66ffaa;display:block}
+.status.info{background:rgba(200,24,26,.05);border:1px solid var(--border);color:var(--muted);display:block}
+
+/* ══════════════════════════════════════
+   PREVIEW PAGE — responsive layout
+══════════════════════════════════════ */
+#pg-preview{
+  padding:64px 16px 40px;
+  justify-content:flex-start;
+  gap:0;
+}
+
+/* wrapper: canvas left, controls right on wide screens */
+.preview-layout{
+  width:100%;
+  max-width:1200px;
+  display:flex;
+  flex-direction:row;
+  align-items:flex-start;
+  gap:28px;
+  margin-top:8px;
+}
+
+/* canvas column */
+.canvas-col{
+  flex:1 1 0;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+}
+.preview-label{
+  font-family:'JetBrains Mono',monospace;font-size:.62rem;
+  letter-spacing:4px;color:var(--muted);text-transform:uppercase;
+  text-align:center;
+}
+#certCanvas{
+  width:100%;
+  height:auto;
+  border:1px solid var(--border);
+  box-shadow:0 0 40px rgba(200,24,26,.15);
+  display:block;
+}
+
+/* controls column */
+.ctrl-col{
+  flex:0 0 200px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  padding-top:4px;
+}
+.ctrl-col .btn{
+  width:100%;
+  padding:13px 16px;
+  font-size:.82rem;
+  letter-spacing:4px;
+  text-align:center;
+}
+.cert-role-tag{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.62rem;letter-spacing:3px;
+  color:var(--muted);text-transform:uppercase;
+  border:1px solid var(--border);padding:10px 14px;
+  line-height:1.6;
+}
+.cert-role-tag strong{color:var(--red);display:block;font-size:.7rem;margin-bottom:3px}
+
+/* ── PHONE VERTICAL (≤600px) ── */
+@media(max-width:600px){
+  #pg-preview{ padding:56px 12px 32px }
+  .preview-layout{ flex-direction:column; align-items:stretch; gap:16px }
+  .ctrl-col{ flex:none; flex-direction:row; flex-wrap:wrap; gap:10px }
+  .ctrl-col .btn{ flex:1 1 140px; padding:12px 10px; font-size:.75rem; letter-spacing:3px }
+  .cert-role-tag{ flex:1 1 100%; }
+}
+
+/* ── PHONE LANDSCAPE (≤900px height) ── */
+@media(max-height:500px) and (orientation:landscape){
+  #pg-preview{ padding:48px 12px 24px }
+  .preview-layout{ flex-direction:row; align-items:flex-start; gap:16px }
+  .canvas-col{ max-width:60vw }
+  .ctrl-col{ flex:0 0 160px; padding-top:0 }
+  .ctrl-col .btn{ padding:10px 8px; font-size:.75rem; letter-spacing:3px }
+}
+
+/* ── TABLET (601–900px) ── */
+@media(min-width:601px) and (max-width:900px){
+  .preview-layout{ flex-direction:column; align-items:center }
+  .canvas-col{ max-width:580px; width:100% }
+  .ctrl-col{ flex-direction:row; flex-wrap:wrap; gap:12px; justify-content:center; max-width:580px; width:100% }
+  .ctrl-col .btn{ flex:1 1 180px }
+  .cert-role-tag{ flex:1 1 100%; text-align:center }
+}
+</style>
+</head>
+<body>
+
+<div class="scan-bar"></div>
+
+<!-- ═══════════ HOME ═══════════ -->
+<section id="pg-home" class="active">
+  <div>
+    <div class="home-title">TECHFEST</div>
+    <div class="home-rule"></div>
+    <div class="home-year">2 0 2 6</div>
+    <div class="home-sub">NMIMS Indore &nbsp;·&nbsp; School of Technology, Management &amp; Engineering</div>
+  </div>
+  <div class="home-btn-wrap">
+    <button class="btn" onclick="go('pg-portal')"><span>Claim Your Certificate</span></button>
+  </div>
+</section>
+
+<!-- ═══════════ PORTAL ═══════════ -->
+<section id="pg-portal">
+  <button class="nav-back" onclick="go('pg-home')">← Back</button>
+
+  <div class="portal-wrap">
+    <div class="portal-title">Certificate Portal</div>
+    <div class="portal-sub">Enter your full name to generate</div>
+
+    <div class="field-wrap">
+      <label class="field-label" for="inp-name">Full Name</label>
+      <input class="field-input" id="inp-name" type="text"
+             placeholder="e.g. TANAY TRIVEDI"
+             oninput="onNameInput()" autocomplete="off">
+    </div>
+
+    <div class="field-wrap">
+      <label class="field-label">Role Detected</label>
+      <div class="role-badge" id="role-badge">
+        <div class="rdot"></div>
+        <span id="role-text">— enter name above —</span>
+      </div>
+    </div>
+
+    <div class="status" id="status-box"></div>
+
+    <button class="btn" id="gen-btn" style="width:100%;opacity:.4;pointer-events:none"
+            onclick="generateCert()"><span>Generate Certificate</span></button>
+  </div>
+</section>
+
+<!-- ═══════════ PREVIEW ═══════════ -->
+<section id="pg-preview">
+  <button class="nav-back" onclick="go('pg-portal')">← Re-edit</button>
+
+  <div class="preview-layout">
+
+    <!-- canvas -->
+    <div class="canvas-col">
+      <div class="preview-label">Certificate Preview</div>
+      <canvas id="certCanvas" width="3150" height="2232"></canvas>
+    </div>
+
+    <!-- controls -->
+    <div class="ctrl-col">
+      <div class="cert-role-tag">
+        <strong id="prev-role-label">—</strong>
+        <span id="prev-name-label">—</span>
+      </div>
+      <button class="btn" onclick="downloadPDF()"><span>⬇ Download PDF</span></button>
+      <button class="btn ghost" onclick="go('pg-portal')"><span>← Re-edit</span></button>
+      <button class="btn ghost" onclick="go('pg-home')"><span>⌂ Home</span></button>
+    </div>
+
+  </div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+/* ═══ DATA ═══ */
+const volunteers = new Set();
+const coreLeads  = new Set();
+let   dataReady  = false;
+const norm = s => s.trim().toUpperCase().replace(/\s+/g,' ');
+
+async function loadFile(url, set){
+  try{
+    const r = await fetch(url); if(!r.ok) return;
+    const txt = await r.text();
+    txt.split('\n').forEach(l=>{ const n=norm(l); if(n) set.add(n); });
+  }catch(_){}
+}
+(async()=>{
+  await Promise.all([loadFile('data1.txt',volunteers), loadFile('data2.txt',coreLeads)]);
+  dataReady = true;
+})();
+
+function detectRole(raw){
+  const n = norm(raw);
+  if(coreLeads.has(n))  return 'Core / Lead';
+  if(volunteers.has(n)) return 'Volunteer';
+  return null;
+}
+
+/* ═══ NAME INPUT ═══ */
+function onNameInput(){
+  const raw  = document.getElementById('inp-name').value;
+  const badge= document.getElementById('role-badge');
+  const rtxt = document.getElementById('role-text');
+  const btn  = document.getElementById('gen-btn');
+  const stat = document.getElementById('status-box');
+  stat.className='status'; stat.textContent='';
+  if(!raw.trim()){
+    badge.className='role-badge'; rtxt.textContent='— enter name above —';
+    btn.style.opacity='.4'; btn.style.pointerEvents='none'; return;
+  }
+  const role = detectRole(raw);
+  if(role){
+    badge.className='role-badge found'; rtxt.textContent=role;
+    stat.className='status ok'; stat.textContent='Verified — role auto-detected';
+  } else {
+    badge.className='role-badge'; rtxt.textContent='Participant';
+    stat.className='status info';
+    stat.textContent = dataReady ? 'Name not in registry — issuing as Participant'
+                                 : 'Lists loading… issuing as Participant';
+  }
+  btn.style.opacity='1'; btn.style.pointerEvents='auto';
+}
+
+/* ═══ COPY PER ROLE ═══ */
+function getCopy(name, role){
+  const U = norm(name);
+  if(role==='Core / Lead') return {
+    label:'Certificate of Leadership', certify:'This is to certify that', name:U,
+    line1:'served as a Core Team Lead at STME NMIMS Indore TechFest 2026,',
+    line2:'demonstrating exceptional leadership, strategic vision, and initiative.',
+    line3:'Their guidance was instrumental in the successful execution of the event.',
+  };
+  if(role==='Volunteer') return {
+    label:'Certificate of Volunteering', certify:'This is to certify that', name:U,
+    line1:'volunteered with dedication at STME NMIMS Indore TechFest 2026,',
+    line2:'contributing time, energy, and enthusiasm to the seamless',
+    line3:'organization and smooth conduct of the event.',
+  };
+  return {
+    label:'Certificate of Participation', certify:'This is to certify that', name:U,
+    line1:'has successfully participated in STME NMIMS Indore TechFest 2026,',
+    line2:'showcasing enthusiasm, innovation, and a spirit of technological excellence.',
+    line3:'Their involvement reflects a commitment to learning and collaborative problem-solving.',
+  };
+}
+
+/* ═══ DRAW ═══ */
+let images = {};
+
+function drawCert(name, role){
+  const canvas = document.getElementById('certCanvas');
+  const ctx    = canvas.getContext('2d');
+  const W=3150, H=2232;
+  canvas.width=W; canvas.height=H;
+
+  const RED='#c8181a',RDARK='#7a0000',BLACK='#0f0f0f',INK='#1a1a1a',GREY='#888888';
+  const C = getCopy(name, role);
+  const {tf,stme,khare,jaswal} = images;
+
+  /* bg */
+  ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,W,H);
+  let g=ctx.createRadialGradient(W,0,0,W,0,W*.7);
+  g.addColorStop(0,'rgba(180,10,10,0.09)');g.addColorStop(1,'transparent');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  g=ctx.createRadialGradient(0,H,0,0,H,W*.55);
+  g.addColorStop(0,'rgba(20,0,0,0.06)');g.addColorStop(1,'transparent');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  g=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,W*.6);
+  g.addColorStop(0,'rgba(255,255,255,0.4)');g.addColorStop(1,'transparent');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+
+  /* grid */
+  ctx.strokeStyle='rgba(0,0,0,0.016)';ctx.lineWidth=1;
+  for(let y=0;y<H;y+=144){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+  for(let x=0;x<W;x+=144){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+
+  /* corner sweeps */
+  ctx.fillStyle='rgba(180,10,10,0.055)';
+  ctx.beginPath();ctx.moveTo(W,0);ctx.lineTo(W-330,0);ctx.lineTo(W,330);ctx.closePath();ctx.fill();
+  ctx.fillStyle='rgba(10,0,0,0.045)';
+  ctx.beginPath();ctx.moveTo(0,H);ctx.lineTo(240,H);ctx.lineTo(0,H-240);ctx.closePath();ctx.fill();
+
+  /* bars */
+  const BH=27;
+  const barG=ctx.createLinearGradient(0,0,W,0);
+  barG.addColorStop(0,RDARK);barG.addColorStop(.4,RED);barG.addColorStop(.6,RED);barG.addColorStop(1,RDARK);
+  ctx.fillStyle=barG;
+  ctx.fillRect(0,0,W,BH);ctx.fillRect(0,H-BH,W,BH);
+
+  /* inner border */
+  const BP=50;
+  ctx.strokeStyle='rgba(180,10,10,0.14)';ctx.lineWidth=2;
+  ctx.strokeRect(BP,BP+BH-8,W-BP*2,H-BP*2-BH*2+16);
+
+  /* corner ticks */
+  const TK=44;ctx.lineWidth=6;ctx.strokeStyle='rgba(200,24,26,0.45)';
+  [[BP,BP+BH-8,1,1],[W-BP,BP+BH-8,-1,1],[BP,H-BP-BH+8,1,-1],[W-BP,H-BP-BH+8,-1,-1]].forEach(([cx,cy,dx,dy])=>{
+    ctx.beginPath();ctx.moveTo(cx,cy+dy*TK);ctx.lineTo(cx,cy);ctx.lineTo(cx+dx*TK,cy);ctx.stroke();
+  });
+
+  /* logos */
+  const logoY=148;
+  if(tf)  { ctx.drawImage(tf,   W/2-86-66, logoY-66, 132, 132); }
+  ctx.strokeStyle='rgba(150,120,120,0.35)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(W/2,logoY-42);ctx.lineTo(W/2,logoY+42);ctx.stroke();
+  if(stme){ ctx.drawImage(stme, W/2+86-54, logoY-54, 108, 108); }
+
+  /* institution */
+  ctx.textAlign='center';ctx.textBaseline='alphabetic';
+  ctx.font='600 32px Rajdhani,sans-serif';ctx.fillStyle=GREY;
+  ctx.fillText('NMIMS INDORE  ·  SCHOOL OF TECHNOLOGY, MANAGEMENT & ENGINEERING',W/2,256);
+
+  /* TECHFEST */
+  ctx.font='700 228px Oswald,sans-serif';ctx.fillStyle=BLACK;
+  ctx.fillText('TECHFEST',W/2,542);
+
+  /* red rule */
+  const rW=W*.44;
+  const rG=ctx.createLinearGradient(W/2-rW/2,0,W/2+rW/2,0);
+  rG.addColorStop(0,'transparent');rG.addColorStop(.15,RED);rG.addColorStop(.85,RED);rG.addColorStop(1,'transparent');
+  ctx.fillStyle=rG;ctx.fillRect(W/2-rW/2,565,rW,9);
+
+  /* year */
+  ctx.font='700 70px Orbitron,sans-serif';ctx.fillStyle=RED;
+  ctx.fillText('2  0  2  6',W/2,658);
+
+  /* ornament */
+  const ornY=730,ornW=W*.52;
+  const oL=ctx.createLinearGradient(W/2-ornW/2,0,W/2,0);
+  oL.addColorStop(0,'transparent');oL.addColorStop(1,'rgba(180,10,10,0.32)');
+  const oR=ctx.createLinearGradient(W/2,0,W/2+ornW/2,0);
+  oR.addColorStop(0,'rgba(180,10,10,0.32)');oR.addColorStop(1,'transparent');
+  ctx.strokeStyle=oL;ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(W/2-ornW/2,ornY);ctx.lineTo(W/2-52,ornY);ctx.stroke();
+  ctx.strokeStyle=oR;
+  ctx.beginPath();ctx.moveTo(W/2+52,ornY);ctx.lineTo(W/2+ornW/2,ornY);ctx.stroke();
+  const diam=(x,y,s,a)=>{ctx.save();ctx.globalAlpha=a;ctx.fillStyle=RED;ctx.translate(x,y);ctx.rotate(Math.PI/4);ctx.fillRect(-s/2,-s/2,s,s);ctx.restore()};
+  diam(W/2,ornY,22,1);diam(W/2-34,ornY,13,.42);diam(W/2+34,ornY,13,.42);
+
+  /* cert label */
+  ctx.font='400 76px Oswald,sans-serif';ctx.fillStyle=INK;
+  ctx.fillText(C.label.toUpperCase(),W/2,852);
+
+  /* certify text */
+  ctx.font='italic 500 54px "Cormorant Garamond",serif';ctx.fillStyle='#666';
+  ctx.fillText(C.certify,W/2,966);
+
+  /* name */
+  const nn=C.name,nl=nn.length;
+  const nfs=nl>32?84:nl>24?104:124;
+  ctx.font=`700 ${nfs}px Oswald,sans-serif`;ctx.fillStyle=BLACK;
+  ctx.fillText(nn,W/2,1108);
+  const nw=ctx.measureText(nn).width+50;
+  const uG=ctx.createLinearGradient(W/2-nw/2,0,W/2+nw/2,0);
+  uG.addColorStop(0,'transparent');uG.addColorStop(.18,INK);uG.addColorStop(.82,INK);uG.addColorStop(1,'transparent');
+  ctx.fillStyle=uG;ctx.fillRect(W/2-nw/2,1126,nw,5);
+
+  /* brackets */
+  ctx.font='700 158px Oswald,sans-serif';ctx.fillStyle=RED;
+  const bx=Math.min(nw/2+84,W*.38);
+  ctx.textAlign='right';ctx.fillText('[',W/2-bx+62,1120);
+  ctx.textAlign='left'; ctx.fillText(']',W/2+bx-62,1120);
+  ctx.textAlign='center';
+
+  /* body */
+  ctx.font='500 47px "Cormorant Garamond",serif';ctx.fillStyle='#444';
+  ctx.fillText(C.line1,W/2,1228);
+  ctx.fillText(C.line2,W/2,1288);
+  ctx.fillText(C.line3,W/2,1348);
+
+  /* hr */
+  const hrY=1418;
+  const hrG=ctx.createLinearGradient(W*.1,0,W*.9,0);
+  hrG.addColorStop(0,'transparent');hrG.addColorStop(.14,'rgba(0,0,0,0.14)');
+  hrG.addColorStop(.86,'rgba(0,0,0,0.14)');hrG.addColorStop(1,'transparent');
+  ctx.strokeStyle=hrG;ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(W*.1,hrY);ctx.lineTo(W*.9,hrY);ctx.stroke();
+
+  /* signatures */
+  const sigY=1524,sLW=470;
+  const sig=(cx,sname,t1,t2,img)=>{
+    /* signature image above the line */
+    if(img){
+      const sh=160, sw=img.width*(sh/img.height);
+      ctx.drawImage(img, cx-sw/2, sigY-sh-20, sw, sh);
+    }
+    ctx.strokeStyle=INK;ctx.lineWidth=4;
+    ctx.beginPath();ctx.moveTo(cx-sLW/2,sigY);ctx.lineTo(cx+sLW/2,sigY);ctx.stroke();
+    ctx.font='600 43px Oswald,sans-serif';ctx.fillStyle=INK;
+    ctx.fillText(sname.toUpperCase(),cx,sigY+54);
+    ctx.font='500 32px Rajdhani,sans-serif';ctx.fillStyle=GREY;
+    ctx.fillText(t1,cx,sigY+96);ctx.fillText(t2,cx,sigY+132);
+  };
+  sig(W*.24,'Dr. Vikas Khare',  'Associate Dean',   'STME, NMIMS Indore', khare);
+  sig(W*.76,'Dr. Anshuman Jaswal','Director',        'NMIMS Indore',       jaswal);
+
+  /* cert ID */
+  const cid='TF2026-'+Math.floor(100000+Math.random()*900000);
+  ctx.font='400 23px "JetBrains Mono",monospace';ctx.fillStyle='rgba(180,10,10,0.35)';
+  ctx.fillText('CERTIFICATE ID  '+cid,W/2,H-78);
+  ctx.font='400 21px Rajdhani,sans-serif';ctx.fillStyle='rgba(0,0,0,0.16)';
+  ctx.fillText('TECHFEST 2026  ·  STME NMIMS INDORE',W/2,H-48);
+}
+
+/* ═══ GENERATE ═══ */
+let curName='', curRole='';
+
+async function generateCert(){
+  const raw=document.getElementById('inp-name').value.trim();
+  if(!raw){
+    const s=document.getElementById('status-box');
+    s.className='status err';s.textContent='Error: please enter your name';return;
+  }
+  curRole = detectRole(raw)||'Participant';
+  curName = raw;
+
+  /* load images */
+  const loadImg = src => new Promise(res=>{
+    const i=new Image();
+    i.onload=()=>res(i);
+    i.onerror=()=>res(null);
+    i.src=src;
+  });
+  const [tf,stme,khare,jaswal] = await Promise.all([
+    loadImg('tf.png'), loadImg('stme.png'),
+    loadImg('khare.png'), loadImg('anshuman.png')
+  ]);
+  images = {tf, stme, khare, jaswal};
+
+  drawCert(raw, curRole);
+
+  /* update sidebar info */
+  document.getElementById('prev-role-label').textContent = curRole;
+  document.getElementById('prev-name-label').textContent = norm(raw);
+
+  go('pg-preview');
+}
+
+/* ═══ PDF ═══ */
+async function downloadPDF(){
+  const{jsPDF}=window.jspdf;
+  const canvas=document.getElementById('certCanvas');
+  const img=canvas.toDataURL('image/png',1.0);
+  const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  const pw=pdf.internal.pageSize.getWidth();
+  const ph=pdf.internal.pageSize.getHeight();
+  pdf.addImage(img,'PNG',0,0,pw,ph,undefined,'FAST');
+  const safe=norm(curName).replace(/\s+/g,'_')||'Certificate';
+  pdf.save('TechFest2026_'+safe+'.pdf');
+}
+
+/* ═══ NAV ═══ */
+function go(id){
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById(id);
+  el.style.animation='none';
+  el.classList.add('active');
+  void el.offsetWidth;
+  el.style.animation='';
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>
